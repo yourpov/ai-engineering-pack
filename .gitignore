@@ -1,0 +1,25 @@
+# Source clips for standards/Clean-Code/ (87 MB, kept locally).
+# The written lessons are the deliverable; the videos are the raw material.
+videoLessons/
+*.mp4
+soon/
+
+
+# This pack is docs only. Nothing here should ever need a lockfile.
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Per-machine agent config. Project AGENTS.md is tracked; local overrides are not.
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
