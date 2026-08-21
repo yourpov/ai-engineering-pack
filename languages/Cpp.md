@@ -584,6 +584,71 @@ Constants/module-level: camelCase or UPPER_CASE (`maxRetries`, `categories`).
 
 ---
 
+## Console Apps
+
+Applies only to tools that live entirely in a terminal (loaders, scanners, CLIs). Skip this
+section for windowed apps. Two layers on top of everything above: tagged logging and shared
+UX helpers.
+
+### Tag-based logging
+
+All output goes through log helpers, never bare `printf`. Every line gets an aligned tag,
+a color, and a plain-English message.
+
+```cpp
+// log.h  entire public API
+void logLine(const char* tag, const char* msg);   // generic tagged line
+void logInfo(const char* msg);                    // [INFO]
+void logAction(const char* tag, const char* msg); // [OK] and friends
+void logDebug(const char* msg);                   // [DBG], gated on cfg::debugMode
+```
+
+- Tags are SCREAMING single words in brackets: `INFO`, `OK`, `ERROR`, `WARN`, `DBG`
+- Colors come from macros in `theme.h` (`WHITE`, `RESET`, ...) wrapping ANSI escapes
+- `logDebug` checks `cfg::debugMode` itself so call sites stay one-liners
+- Messages are written for the end user, not the developer: "That's not a .dll file.
+  Drop a DLL onto the loader and try again." beats "invalid extension"
+
+```cpp
+logInfo("Checking aim.dll");
+logAction("OK", "Injected");
+logLine("ERROR", "No DLL was found. Drop a .dll onto the loader and try again.");
+logDebug(("dllPath: " + dllPath).c_str());
+```
+
+### Shared UX helpers
+
+Small free functions every interactive console tool reuses instead of reimplementing:
+
+```cpp
+void pressEnter(const char* prompt);   // "\n" + prompt + drain stdin
+bool fileExists(const char* path);
+std::string dllPathFromCurrentDirectory(const std::string& name);
+```
+
+Patterns:
+
+- **Every error path ends the same way**: `logLine("ERROR", ...)` then
+  `pressEnter("Press Enter to go back...")`, then early return
+- **Numbered pickers** for choosing between N items: print `[1] name`, read a line,
+  `atoi`, bounds-check before use
+- **Inline prompts**, no newline: `printf(WHITE "Select a DLL: " RESET); fflush(stdout);`
+- **Read input with `std::getline`**, never `>>` which leaves the newline behind
+- **Banner first**: `banner::show()` at startup, blank line before the first log line
+
+```cpp
+for (size_t i = 0; i < dlls.size(); i++)
+    printf(WHITE "[%d]" RESET " %s\n", (int)(i + 1), dlls[i].c_str());
+printf(WHITE "Select a DLL: " RESET);
+fflush(stdout);
+std::string line;
+std::getline(std::cin, line);
+int index = atoi(line.c_str());
+if (index < 1 || index > (int)dlls.size()) { /* error path */ }
+```
+
+---
+
 ## Build
 
 Single `build.bat`. No CMake, no Makefile. MSVC `cl.exe` with all sources listed explicitly.
@@ -718,6 +783,8 @@ Rules:
 - **Hot-reload.** Long-running loops rebuild objects when config changes mid-run.
 - **Threading.** `std::atomic` for lifecycle, `std::mutex` for shared data, detached threads.
 - **Frontend** is reactive: `state.watch()` triggers `paint()` on every backend message.
+- **Console apps** add tag-based logging (`logLine` / `logAction`) and shared UX helpers
+  (`pressEnter`, numbered pickers) on top of the base rules.
 
 ---
 
