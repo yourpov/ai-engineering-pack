@@ -10,6 +10,7 @@ rules are already in play.
 | **[Tauri.md](./Tauri.md)** | Desktop apps with a Rust backend and a web frontend. Small binaries, real system access | `TypeScript.md` |
 | **[Electron.md](./Electron.md)** | Desktop apps where you want the whole Chromium runtime. Main process, preload bridge, IPC | `TypeScript.md` |
 | **[Valkyrie.md](./Valkyrie.md)** | Desktop apps on the system WebView. Roughly 2 MB binaries instead of Electron's 150 to 300 MB | `TypeScript.md` |
+| **[Dear-ImGui.md](./Dear-ImGui.md)** | Native tool UIs: profilers, editors, overlays, control panels. Immediate mode with a hand-drawn widget kit | `Cpp.md` |
 
 ## Choosing a desktop framework
 
