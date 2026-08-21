@@ -76,6 +76,15 @@ If the title is not the product, it is not the domain.
       cause of "our link preview has no image". Same for `twitter:image`.
 - [ ] `og:image` is reachable, ~1200×630, and declares `og:image:width` / `:height`
       so scrapers can lay out before download.
+- [ ] **The declared `og:image:width` / `:height` match the file's real pixels.**
+      Scrapers reserve layout from the declaration and then fit the actual image
+      into it. Declaring 512×512 for a 372×279 file produces the "huge awkward
+      crop" that looks like a broken card. Measure, do not assume:
+      `ffprobe -v error -show_entries stream=width,height -of csv=p=0 og-image.png`
+- [ ] `og:image:type` and `og:image:alt` set
+- [ ] **The OG image is not the favicon.** Check they are not the same file —
+      `cmp -s public/og-image.png public/favicon.png && echo "SAME FILE"`. An icon
+      reused as a share card is the most common cause of an ugly preview.
 - [ ] `og:type`, `og:title`, `og:description`, `og:url`, `og:site_name`, `og:locale`
 - [ ] `twitter:card` = `summary_large_image` (plus title / description / image)
 - [ ] `<link rel="canonical">` on every route
@@ -89,6 +98,55 @@ If the title is not the product, it is not the domain.
 - [ ] JSON-LD describing what the page actually is
 - [ ] Dynamic routes appear in the sitemap
 - [ ] Non-canonical routes (404, search results, thin pages) are `noindex`
+
+### Tier 2.5 — the favicon is a search result element
+
+Google renders a favicon beside every result. It silently rejects icons that do
+not meet its requirements, and falls back to a generic globe — which reads to the
+site owner as "my image is missing" while every tag validates fine.
+
+- [ ] **Square.** A non-square favicon is rejected outright. This is the usual cause.
+- [ ] **A multiple of 48px** — 48×48, 96×96, 192×192. Ship several via `sizes`.
+- [ ] **Visible on both light and dark chrome.** A black-on-transparent glyph
+      disappears against a dark tab bar and in dark-mode search results. Give the
+      icon an opaque background in the brand colour rather than shipping alpha.
+- [ ] `apple-touch-icon` is 180×180 and **opaque** — iOS composites transparency
+      onto black.
+- [ ] Reachable at a stable URL and not blocked by `robots.txt`.
+
+```bash
+# square? multiple of 48?
+for f in public/favicon*.png public/apple-touch-icon.png; do
+  printf "%-28s " "$f"; ffprobe -v error -show_entries stream=width,height -of csv=p=0 "$f"
+done
+```
+
+### Tier 2.75 — the tags are 20% of the job
+
+A perfect technical layer on a thin site ranks for the brand name and nothing
+else. Before congratulating yourself on a clean audit, check the things markup
+cannot fix:
+
+- [ ] **There is something to rank.** Nobody searches your product name until they
+      already know it. If no page answers the query you want to win, no tag will
+      make one.
+- [ ] **The content is in the served HTML.** A client-side `fetch` that renders
+      your richest keyword surface — a project list, a catalogue, a changelog —
+      is invisible to everything that does not run JS, and unreliable even for
+      Google. Snapshot it at build time.
+- [ ] **`<meta name="keywords">` is deleted.** Every major engine has ignored it
+      since 2009. It only signals that someone copied a 2006 checklist.
+- [ ] **Payload is not the bottleneck.** Core Web Vitals are ranking signals.
+      Measure the built bundle, not the vibe:
+      `npm run build` and read the chunk table. Split vendors that change on a
+      different cadence than your app, so a copy tweak does not invalidate the
+      framework chunk.
+- [ ] **Authority is acknowledged, not assumed.** Sitelinks, rich results, and
+      competitive rankings need inbound links and traffic. Clean markup removes
+      the excuses; it does not substitute for them.
+
+Say this plainly to whoever asked for the audit. A technically perfect, contentless
+site is a common and expensive misunderstanding of what SEO is.
 
 ### Tier 3 — performance and polish
 
@@ -199,7 +257,109 @@ that are true and visible on the page.
 
 ---
 
+## The description you write is a suggestion, not a guarantee
+
+Google frequently ignores `meta name="description"` and synthesises a snippet from
+on-page text instead — it does this when the description looks thin, keyword-ish,
+or less relevant to the query than the body copy. The result is often two
+unrelated fragments stitched together, reading like keyword salad:
+
+> Full-stack developer and audio engineer. Bots, APIs, automation, Roblox systems,
+> and products. Full-stack development with Go, TypeScript, and Python. Discord
+> bots, Telegram bots, REST…
+
+Neither half of that came from a meta tag; both were scraped from the page.
+
+**So when a snippet reads badly, fix the on-page copy — editing the meta tag alone
+will not change it.** Grep the site for the exact fragment to find its real source:
+
+```bash
+grep -rn "the exact phrase from the SERP" src/
+```
+
+Two practical consequences:
+
+- **The first substantive paragraph is SEO copy**, whether you intended it or not.
+  Write it as a sentence a human would read aloud, not a comma-separated skills list.
+- **A charming one-liner description is a trade-off.** "Learn more about me, connect,
+  or work with me." is excellent for a Discord embed and gives Google nothing to
+  prefer over body text. If you want the description honoured, it needs enough
+  substance to beat the page copy on relevance — pair the hook with the specifics.
+
+### Sitelinks cannot be requested
+
+The indented sub-links under a result (Login, Services, Blog…) are generated
+algorithmically from site structure, internal linking, and traffic. There is no
+markup that produces them and no way to opt in. What you can do is remove the
+reasons Google withholds them: unique `<title>` per route, every route in the
+sitemap, and real internal links to each. Duplicate titles across routes — the
+default failure in an SPA where only some pages set metadata — are the most
+common blocker.
+
+---
+
 ## Single-page apps
+
+### Serving real HTML to non-rendering crawlers
+
+Google renders JS, so a runtime metadata hook is enough *for Google*. Discord,
+Slack, Twitter, and most other scrapers do not — they read the served HTML, which
+in an SPA is one `index.html` with one set of tags. Every route then shares the
+homepage's title and description, and every share of `/games` looks like a share
+of `/`.
+
+On a serverless host you can close this without a framework migration: route the
+content paths through a small handler that returns per-route tags to bots and the
+normal shell to everyone else.
+
+```ts
+// vercel.json → { "source": "/games", "destination": "/api/preview?route=/games" }
+const meta = ROUTE_SEO.find((r) => r.path === route);
+if (meta && isBot(req.headers['user-agent'])) {
+  return res.send(renderTags(meta));       // built from the same table the app uses
+}
+return res.send(readFileSync('dist/index.html', 'utf8'));
+```
+
+Derive the table from the same constant the client hook reads — two hand-kept
+lists will disagree, and the disagreement is invisible until someone shares a link.
+
+Costs to weigh: every request to those paths becomes a function invocation, and
+user-agent sniffing is a heuristic that new crawlers fall outside of. Prefer real
+SSG or SSR when the project can afford it; this is the retrofit.
+
+### One route table, every consumer
+
+Per-route metadata has at least four consumers — the `<title>` the browser shows,
+the sitemap, the HTML served to crawlers, and the robots rules. Hand-maintaining
+them separately guarantees a page that describes itself one way to users and
+another to search engines, and nothing fails loudly when they diverge.
+
+Define the routes once and derive everything:
+
+```ts
+export const ROUTE_SEO = [
+  { path: "/", title: "…", description: "…", changefreq: "weekly", priority: 1.0 },
+  { path: "/demos", title: "…", description: "…", changefreq: "monthly", priority: 0.8 },
+];
+```
+
+Then `buildSitemap()` maps it, the bot handler looks up from it, and a single
+`useRouteSeo(path)` hook applies it client-side. Adding a page becomes one edit.
+
+**The failure this prevents is silent.** An SPA where only *some* routes set their
+own title leaves the rest inheriting the homepage's — duplicate titles across
+routes, which splits relevance and is the most common reason sitelinks never
+appear. Verify by enumerating, not spot-checking:
+
+```js
+for (const route of ROUTES) {
+  await page.goto(base + route);
+  console.log(route, await page.title(), await canonicalOf(page));
+}
+```
+
+Two identical titles in that output is a bug, not a style choice.
 
 ### Per-route metadata: mutate, do not append
 
@@ -239,6 +399,78 @@ Confirm your catch-all rewrite does not swallow `robots.txt` and `sitemap.xml`.
 Most hosts (Vercel included) check the filesystem before applying rewrites, so
 real emitted files win — but verify rather than assume, because the failure is
 silent and looks like a working site.
+
+**Check the body, never the status code.** A dev server's SPA fallback answers
+`200` for `/robots.txt` while serving `index.html`, so a status check passes on a
+file that does not exist:
+
+```bash
+curl -s -o /dev/null -w "%{http_code} %{content_type}\n" localhost:5173/robots.txt
+# 200 text/html   ← the 200 is a lie; text/html is the tell
+curl -s localhost:5173/robots.txt | head -1
+# <!doctype html> ← proof
+```
+
+Assert on content type and first line. `text/html` for `robots.txt` means the
+fallback ate it.
+
+### Generated files must also exist in dev
+
+`generateBundle` runs at build only, so a plugin that emits `robots.txt` and
+`sitemap.xml` leaves both missing during development — you cannot verify locally,
+and the SPA fallback disguises it as a 200. Serve them from the same builders via
+dev middleware so the two environments cannot disagree:
+
+```ts
+const SEO_FILES = {
+  "/robots.txt": { type: "text/plain", body: () => buildRobots(SITE_URL) },
+  "/sitemap.xml": { type: "application/xml", body: () => buildSitemap(SITE_URL) },
+};
+
+configureServer(server) {
+  server.middlewares.use((req, res, next) => {
+    const file = SEO_FILES[req.url?.split("?")[0] ?? ""];
+    if (!file) return next();
+    res.setHeader("Content-Type", file.type);
+    res.end(file.body());
+  });
+},
+generateBundle() { /* emit the same builders */ },
+```
+
+### Making the sitemap readable (optional)
+
+An `<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>` instruction after the
+XML declaration renders the sitemap as a table for humans. Crawlers ignore the
+instruction entirely, so it costs nothing at crawl time — it is purely for the
+person who opens the file and sees the browser's "no style information" notice.
+
+Namespace it correctly or the transform silently produces an empty page: the
+sitemap lives in `http://www.sitemaps.org/schemas/sitemap/0.9`, so bind a prefix
+(`xmlns:s=…`) and select `s:urlset/s:url`, never bare `urlset/url`.
+
+### Crawling rules that are actually about security
+
+`Disallow` and `noindex` solve different problems and are routinely swapped:
+
+| Goal | Use | Why not the other |
+|---|---|---|
+| Keep a URL out of results | `noindex` | `Disallow` blocks the crawl, so the `noindex` is never seen — and a linked URL can still be indexed bare |
+| Stop a crawler fetching at all | `Disallow` | `noindex` requires the fetch to happen |
+
+**Where the URL is the credential — one-time links, OAuth callbacks, magic-link
+tokens — you want `Disallow`.** A crawled token lands in logs and caches and may
+be spent before its owner clicks it:
+
+```
+Disallow: /*?token=
+Disallow: /*?state=
+Disallow: /*?code=
+```
+
+Wildcards are honoured by Google, Bing, and Yandex. And remember `robots.txt` is
+public: listing `/admin` advertises it. That is usually fine for a path already
+visible in your JS bundle, but never treat the file as concealment.
 
 ---
 
@@ -314,3 +546,13 @@ Then, before announcing launch:
 | Hoisted per-route meta on top of static tags | Duplicate, conflicting tags |
 | Keyword-stuffed `<title>` | Truncated in results and reads as spam |
 | `noindex` shipped from a staging config | Silently removes the whole site from search |
+| Favicon reused as `og:image` | An icon crops into a share card badly; also usually the wrong aspect |
+| Declared OG dimensions that do not match the file | Scraper reserves the wrong box; preview looks broken |
+| Non-square favicon | Google rejects it and shows a generic globe instead |
+| Only some SPA routes setting their own title | Duplicate titles suppress sitelinks and split relevance |
+| Editing `meta description` to fix a bad SERP snippet | Google may be synthesising from body copy; fix the copy |
+| `<meta name="keywords">` | Ignored since 2009; signals a copied 2006 checklist |
+| Checking a generated file with a status code only | SPA fallback returns 200 with `index.html`; assert on content type |
+| `Disallow` on a page you wanted de-indexed | Blocks the crawl, so the `noindex` is never read |
+| Crawlable one-time-token URLs | The URL is the credential; it ends up in logs and caches |
+| Declaring the audit done at Tier 2 | Tags are ~20% of ranking; thin content is the real ceiling |
