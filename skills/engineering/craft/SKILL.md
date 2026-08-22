@@ -69,10 +69,13 @@ Correctness, security, and clarity always beat stylistic camouflage.
 
 ## 5. Prose (docs, PR text, commit messages)
 
-- Short sentences. Concrete verbs. No hype.
+Full rules live in `skills/writing/prose/SKILL.md`. Load it when writing or reviewing any
+written material. The short version:
+
+- Short sentences. Concrete verbs. No filler adjectives or discourse glue.
 - No em dash as punctuation. Ordinary hyphens in compound words are fine.
-- Avoid filler: seamlessly, robust, leverage, utilize, furthermore, moreover, in conclusion.
-- Avoid forced parallelism and rule-of-three marketing cadence.
+- Watch the structural tells, not just the word list: binary contrast, negative listing,
+  rhetorical setup, fragments written for rhythm.
 - Do not restate what a linked file already shows; link it.
 - Commit/PR body: why and risk, not a narrative of every keystroke.
 

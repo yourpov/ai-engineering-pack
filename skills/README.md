@@ -50,6 +50,25 @@ cp -r skills/review/audit ~/.claude/skills/
 | Skill | `name` | Fires when |
 |---|---|---|
 | **[create-readme](./writing/create-readme/SKILL.md)** | `create-readme` | Writing a README from the real tree instead of a template. Every claim verified against an opened file |
+| **[prose](./writing/prose/SKILL.md)** | `prose` | Any written material: README, docs, PR body, commit message, changelog, release notes. The single source of truth for prose rules in this pack |
+
+---
+
+### On "anti-slop" and humanizer skills
+
+There is a genre of skill that strips AI tells from prose and scores the result against a
+rubric, sometimes with a pass threshold. [`prose`](./writing/prose/SKILL.md) covers the same
+patterns those skills catch, including the structural ones that survive a word-level
+cleanup. It stops short of the scoring.
+
+A detector score measures how a text was generated, and the thing worth measuring is whether
+a teammate can follow the doc. Writing to move a score produces docs that read oddly and
+still fail their job, and the usual next step is adding deliberate inconsistency to look
+human, which makes the file harder to trust. `prose` is also scoped to engineering writing,
+so the rules assume a reader trying to complete a task rather than a reader being persuaded.
+
+If you want the rules run as an audit, use
+[`../prompts/reviews/Docs-Review.md`](../prompts/reviews/Docs-Review.md).
 
 ---
 

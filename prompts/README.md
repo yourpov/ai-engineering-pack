@@ -4,7 +4,7 @@ Paste-in task prompts. Not installable skills (see `../skills/`).
 
 | Folder | Role | Pair with |
 |---|---|---|
-| **`reviews/`** | Audits, security, performance, production go/no-go, Tauri QC | Always `../skills/review/audit/SKILL.md` first |
+| **`reviews/`** | Audits, security, performance, production go/no-go, Tauri QC, documentation | Always `../skills/review/audit/SKILL.md` first |
 | **`scaffolds/`** | Greenfield product builds + README voice templates | Matching `../languages/*` / `../frameworks/*` |
 | **`domains/`** | Extension point. Add `domains/<your-stack>/` for threat models that only apply to one platform. Do not mirror generic Security/Error/Perf files that already live in `reviews/`. | Always `../skills/review/audit/SKILL.md` first |
 | **`workflow/`** | How the agent should behave before and during a task, independent of stack | Any prompt above |
@@ -25,5 +25,6 @@ Paste-in task prompts. Not installable skills (see `../skills/`).
 | Security pass | `reviews/Security-Audit.md` |
 | Discord bot | `scaffolds/Discord-Bot.md` |
 | Website | `scaffolds/Website.md` |
-| README voice | `scaffolds/Readme-Voice.md` + skill `Create-Readme.md` |
+| README voice | `scaffolds/Readme-Voice.md` + `../skills/writing/create-readme/SKILL.md` |
+| Docs are stale or read like AI wrote them | `reviews/Docs-Review.md` + `../skills/writing/prose/SKILL.md` |
 | Generic security (any stack) | `reviews/Security-Audit.md` |

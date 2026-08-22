@@ -8,10 +8,15 @@ This file owns tone and section layouts by project type. The skill owns evidence
 ## Before you write
 
 1. Prefer `skills/writing/create-readme/SKILL.md` for discovery (open the tree; no guessing).
-2. Pick a template below only after you know project type and whether the repo is public or private.
-3. **Private repos / small teams:** skip badge spam, generic Contributing, and license sections unless the repo already has them. Use Small / Personal or a trimmed Full template.
-4. Never paste secrets, tokens, or live connection strings.
-5. Match tone to `AGENTS.md` when present.
+2. Read `skills/writing/prose/SKILL.md` for the prose rules. **This file overrides it on
+   casing and formality only.** The lowercase, contraction-friendly voice below is a
+   deliberate choice for personal repos. Everything else in that skill still applies:
+   no filler, no em dash punctuation, no binary contrast or rhetorical setup, no list
+   padded to three.
+3. Pick a template below only after you know project type and whether the repo is public or private.
+4. **Private repos / small teams:** skip badge spam, generic Contributing, and license sections unless the repo already has them. Use Small / Personal or a trimmed Full template.
+5. Never paste secrets, tokens, or live connection strings.
+6. Match tone to `AGENTS.md` when present.
 
 ---
 

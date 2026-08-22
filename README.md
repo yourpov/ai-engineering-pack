@@ -68,7 +68,7 @@ tied to one project, so the same pieces go into every repo you own.
 </tr>
 <tr>
   <td><a href="skills/README.md"><b><code>skills/</code></b></a></td>
-  <td>Guidance that fires on its own. Audit harness, error handling, comment discipline, sub-agent routing, <code>.claude/</code> setup</td>
+  <td>Guidance that fires on its own. Audit harness, error handling, comment discipline, prose rules, sub-agent routing, <code>.claude/</code> setup</td>
   <td>Install once, forget about it</td>
 </tr>
 <tr>
@@ -236,9 +236,10 @@ prompts are self-contained tasks.
 | `standards/Principles.md` | SOLID, testing, security, concurrency. Craft defers to Clean-Code |
 | `skills/engineering/errors/SKILL.md` | Failure handling and user-facing error copy |
 | `skills/engineering/uncle-bob/SKILL.md` | Structure, seams, professionalism |
-| `skills/engineering/craft/SKILL.md` | Naming, comments, prose |
+| `skills/engineering/craft/SKILL.md` | Naming, comments, structure |
 | `skills/engineering/necessary-comments/SKILL.md` | Deciding whether a comment earns its keep |
 | `skills/writing/create-readme/SKILL.md` | Writing a README from the real tree |
+| `skills/writing/prose/SKILL.md` | Any README, doc, PR body, or commit message. The prose rules the rest of the pack defers to |
 | `skills/web/web-seo/SKILL.md` | Shipping a public site |
 | `skills/agent/sub-agents/SKILL.md` | Delegating work and picking model tiers |
 | `skills/agent/context-budget/SKILL.md` | A session feels expensive, or usage limits keep getting hit |
@@ -246,6 +247,7 @@ prompts are self-contained tasks.
 | `skills/agent/claude-folder/SKILL.md` | Setting up `.claude/`, or a hook that will not fire |
 | `prompts/workflow/Before-Implementing.md` | The agent is about to build on a guess |
 | `prompts/reviews/PR-Review.md` | Pre-merge go or no-go |
+| `prompts/reviews/Docs-Review.md` | Docs have drifted from the code, or read like nobody proofread them |
 | `design/apple-design/SKILL.md` | An explicit Apple aesthetic request |
 | `STACK.md` | No stack has been chosen yet |
 
@@ -339,14 +341,15 @@ Architecture/
 │   ├── engineering/                how code gets written
 │   │   ├── errors/SKILL.md         failure handling and user-facing copy
 │   │   ├── uncle-bob/SKILL.md      craft methodology
-│   │   ├── craft/SKILL.md          naming, comments, prose
+│   │   ├── craft/SKILL.md          naming, comments, structure
 │   │   └── necessary-comments/SKILL.md
 │   ├── review/
 │   │   └── audit/SKILL.md          required harness for every review
 │   ├── web/
 │   │   └── web-seo/SKILL.md        meta, OG, canonical, sitemap, JSON-LD
 │   └── writing/
-│       └── create-readme/SKILL.md  README written from the real tree
+│       ├── create-readme/SKILL.md  README written from the real tree
+│       └── prose/SKILL.md          the prose rules the pack defers to
 │
 ├── design/                         INSTALLABLE, opt-in only
 │   ├── README.md                   plus sources for components, icons, assets
@@ -378,6 +381,7 @@ Architecture/
     │   ├── Security-Audit.md
     │   ├── Error-Handling-And-Observability.md
     │   ├── Performance-Scalability-Review.md
+    │   ├── Docs-Review.md
     │   └── Tauri-QC.md
     └── scaffolds/                  greenfield builds
         ├── Discord-Bot.md
@@ -430,6 +434,13 @@ Build a bot that posts daily standup reminders.
 ```
 Read skills/writing/create-readme/SKILL.md, and prompts/scaffolds/Readme-Voice.md for voice.
 Write README.md from the actual repo. No guessing.
+```
+
+**Docs pass**
+
+```
+Read skills/review/audit/SKILL.md and prompts/reviews/Docs-Review.md.
+Scope: README.md and docs/**. Mode: report-only.
 ```
 
 **Craft pass**

@@ -65,14 +65,15 @@ Do not invent features.
 
 ---
 
-## Style (universal prose quality)
+## Style
 
-- Prefer short sentences. One idea per sentence.
-- No em dash punctuation. Use period, comma, or colon.
-- No rhythmic contrastive negation patterns ("X. Not Y. Not Z." as a cadence).
-- No AI filler: seamlessly, robust, leverage, utilize, furthermore, in conclusion.
-- Point at files instead of restating them.
-- Match project language rules in `AGENTS.md` when present.
+Prose rules live in `skills/writing/prose/SKILL.md`. Load it before writing final README
+content. `prompts/scaffolds/Readme-Voice.md` owns tone and section layout by project type.
+
+Two rules matter most here: no claim survives that you did not verify against an opened
+file, and no sentence restates what a linked file already shows.
+
+Match project language rules in `AGENTS.md` when present.
 
 ---
 
